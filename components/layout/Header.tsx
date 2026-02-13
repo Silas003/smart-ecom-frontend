@@ -35,9 +35,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-4 sm:gap-4 lg:px-8">
         {/* Brand */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-2">
           <Link
             href="/"
             className="flex items-center gap-2 rounded-full px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 dark:focus-visible:ring-zinc-300"
@@ -49,7 +49,7 @@ export function Header() {
         </div>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 text-xs font-medium text-zinc-600 sm:flex dark:text-zinc-300">
+        <nav className="hidden flex-1 items-center justify-center gap-4 text-xs font-medium text-zinc-600 md:flex dark:text-zinc-300">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -74,11 +74,11 @@ export function Header() {
         </nav>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
           {/* Search (desktop) */}
           <form
             action="/search"
-            className="hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs text-zinc-500 shadow-sm sm:flex dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
+            className="hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs text-zinc-500 shadow-sm lg:flex dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
           >
             <label className="sr-only" htmlFor="header-search">
               Search products
@@ -136,7 +136,10 @@ export function Header() {
             aria-expanded={mobileOpen}
             onClick={toggleMobile}
           >
-            <span className="block h-0.5 w-4 rounded bg-current" />
+            <span className="flex flex-col gap-1">
+              <span className="block h-0.5 w-4 rounded bg-current" />
+              <span className="block h-0.5 w-4 rounded bg-current" />
+            </span>
           </button>
         </div>
       </div>
