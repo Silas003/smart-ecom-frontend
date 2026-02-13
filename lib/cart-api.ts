@@ -4,7 +4,8 @@ import { authorizedFetch } from "./secured-fetch";
 export type CartStatus = "active" | "checkout" | "deactivated";
 
 export type CartItem = {
-  cartItemId: number;
+    totalPrice: number;
+  id: number;
   cartId: number;
   userId: number;
   productId: number;
@@ -98,6 +99,18 @@ export async function removeItemFromCart(options: {
 
   if ((res as Response).status === 204) {
     return { status: 204, message: "Item removed from cart successfully", data: null };
+  }
+
+  return handleCartResponse<ResponseDto<null>>(res as Response);
+}
+
+export async function clearCartForUser(userId: number): Promise<ResponseDto<null>> {
+  const res = await authorizedFetch(`${API_BASE_URL}/api/v1/carts/users/${userId}/items`, {
+    method: "DELETE",
+  });
+
+  if ((res as Response).status === 204) {
+    return { status: 204, message: "Cart cleared successfully", data: null };
   }
 
   return handleCartResponse<ResponseDto<null>>(res as Response);

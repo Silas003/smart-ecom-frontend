@@ -11,7 +11,7 @@ export type CartState = {
   status?: CartStatus;
   hydrateFromServer: (cart: CartSummary) => void;
   addOrUpdateItem: (item: CartItem) => void;
-  removeItemLocally: (cartItemId: number) => void;
+  removeItemLocally: (id: number) => void;
   clearCart: () => void;
   totalQuantity: () => number;
 };
@@ -32,19 +32,23 @@ export const useCartStore = create<CartState>()(
         });
       },
       addOrUpdateItem: (item) => {
-        const existing = get().items.find((i) => i.cartItemId === item.cartItemId);
+        const existing = get().items.find((i) => i.id === item.id);
         if (existing) {
           set({
             items: get().items.map((i) =>
-              i.cartItemId === item.cartItemId ? { ...i, ...item } : i
+              i.id === item.id ? { ...i, ...item } : i
             ),
+            cartId: item.cartId,
           });
         } else {
-          set({ items: [...get().items, item] });
+          set({
+            items: [...get().items, item],
+            cartId: item.cartId,
+          });
         }
       },
       removeItemLocally: (cartItemId) => {
-        set({ items: get().items.filter((i) => i.cartItemId !== cartItemId) });
+        set({ items: get().items.filter((i) => i.id !== cartItemId) });
       },
       clearCart: () =>
         set({ items: [], cartId: undefined, userId: undefined, status: undefined }),

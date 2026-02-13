@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCartStore } from "../../lib/cart-store";
 import { getCurrentUserId } from "../../lib/user";
 import { createOrder } from "../../lib/orders";
-import { updateCartStatus } from "../../lib/cart-api";
+import { getCartForUser, updateCartStatus, clearCartForUser } from "../../lib/cart-api";
 import { useToast } from "../../components/ui/toaster";
 
 export default function CheckoutPage() {
@@ -14,6 +14,7 @@ export default function CheckoutPage() {
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
   const cartId = useCartStore((state) => state.cartId);
+  const hydrateFromServer = useCartStore((state) => state.hydrateFromServer);
   const [submitting, setSubmitting] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const { addToast } = useToast();
@@ -24,8 +25,17 @@ export default function CheckoutPage() {
       router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
       return;
     }
-    setCheckingAuth(false);
-  }, [router]);
+
+    // Ensure cartId is hydrated if not already present
+    if (cartId === undefined) {
+      getCartForUser(userId)
+        .then((res) => hydrateFromServer(res.data))
+        .catch((error) => console.error("Failed to hydrate cart in checkout", error))
+        .finally(() => setCheckingAuth(false));
+    } else {
+      setCheckingAuth(false);
+    }
+  }, [router, cartId, hydrateFromServer]);
 
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
@@ -41,16 +51,24 @@ export default function CheckoutPage() {
         productId: item.productId,
         quantity: item.quantity,
       }));
-      await createOrder({ userId, items: orderItems });
+      const orderResponse = await createOrder({ userId, items: orderItems });
 
+      console.log("Order placed successfully", orderResponse.data);
+      console.log("Updating cart status to checkout...",cartId);
       if (cartId) {
         try {
           await updateCartStatus({ cartId, body: { status: "checkout" } });
         } catch (error) {
-          console.error("Failed to update cart status to checkout", error);
+          console.error("Failed to update cart status after order placement", error);
         }
       } else {
-        console.warn("No cartId available when attempting to set cart status to checkout.");
+        console.warn("No cartId available when attempting to update cart status.");
+      }
+
+      try {
+        await clearCartForUser(userId);
+      } catch (error) {
+        console.error("Failed to clear cart on server after order placement", error);
       }
 
       clearCart();
@@ -111,7 +129,7 @@ export default function CheckoutPage() {
           <ul className="space-y-3">
             {items.map((item) => (
               <li
-                key={item.cartItemId ?? `${item.productId}-${item.quantity}`}
+                key={item.id ?? `${item.productId}-${item.quantity}`}
                 className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-950"
               >
                 <div>

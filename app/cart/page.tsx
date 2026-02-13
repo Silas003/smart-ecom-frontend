@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCartForUser, removeItemFromCart, addItemToCart } from "../../lib/cart-api";
+import {
+  getCartForUser,
+  removeItemFromCart,
+  addItemToCart,
+  updateCartStatus,
+  clearCartForUser,
+} from "../../lib/cart-api";
 import { useCartStore } from "../../lib/cart-store";
 import { useRouter } from "next/navigation";
 import { getCurrentUserId } from "../../lib/user";
@@ -14,6 +20,7 @@ export default function CartPage() {
   const clearCart = useCartStore((state) => state.clearCart);
   const hydrateFromServer = useCartStore((state) => state.hydrateFromServer);
   const removeItemLocally = useCartStore((state) => state.removeItemLocally);
+  const cartId = useCartStore((state) => state.cartId);
   const { addToast } = useToast();
   const [loading, setLoading] = useState(true);
 
@@ -32,6 +39,10 @@ export default function CartPage() {
   const handleRemove = async (cartItemId: number) => {
     try {
       const userId = getCurrentUserId();
+      if (!userId) {
+        router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
+        return;
+      }
       removeItemLocally(cartItemId);
       await removeItemFromCart({ userId, cartItemId });
       addToast("Item removed from cart", "success");
@@ -55,6 +66,10 @@ export default function CartPage() {
 
     try {
       const userId = getCurrentUserId();
+      if (!userId) {
+        router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
+        return;
+      }
       const response = await addItemToCart({
         userId,
         productId,
@@ -72,12 +87,34 @@ export default function CartPage() {
   const handleClearCart = async () => {
     try {
       const userId = getCurrentUserId();
+      if (!userId) {
+        router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
+        return;
+      }
+
+      await clearCartForUser(userId);
+
       clearCart();
-      await removeItemFromCart({ userId, cartItemId: 0 }); // cartItemId: 0 to clear all items
+
       addToast("Cart cleared", "success");
     } catch (error) {
-      console.error("Failed to clear cart", error);
       addToast("Failed to clear cart. Please try again.", "error");
+    }
+  };
+
+  const handleProceedToCheckout = async () => {
+    try {
+      const userId = getCurrentUserId();
+      if (!userId) {
+        router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
+        return;
+      }
+
+      router.push("/checkout");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error during proceed to checkout", error);
+      addToast("Something went wrong. Please try again.", "error");
     }
   };
 
@@ -198,7 +235,7 @@ export default function CartPage() {
         </p>
         <button
           type="button"
-          onClick={() => router.push("/checkout")}
+          onClick={handleProceedToCheckout}
           className="inline-flex w-full items-center justify-center rounded-full bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           Proceed to checkout
