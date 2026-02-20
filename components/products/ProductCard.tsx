@@ -7,6 +7,7 @@ import { addItemToCart } from "../../lib/cart-api";
 import { useCartStore } from "../../lib/cart-store";
 import { useRouter } from "next/navigation";
 import { getCurrentUserId } from "../../lib/user";
+import {useRequireAuth} from "@/lib/use-require-auth";
 
 export type ProductCardProps = {
   id: string | number;
@@ -20,15 +21,11 @@ export function ProductCard({ id, name, price, imageUrl, description }: ProductC
   const [isAdding, setIsAdding] = useState(false);
   const addOrUpdateItem = useCartStore((state) => state.addOrUpdateItem);
   const router = useRouter();
-
+    const { isHydrated, isAuthenticated, user } = useRequireAuth();
   const handleAddToCart = async () => {
     try {
       setIsAdding(true);
-      const userId = getCurrentUserId();
-      if (!userId) {
-        router.push(`/login?redirect=${encodeURIComponent(`/products/${id}`)}`);
-        return;
-      }
+      const userId = user?.data.id;
       const response = await addItemToCart({ userId, productId: Number(id), quantity: 1 });
       addOrUpdateItem(response.data);
     } catch (error) {

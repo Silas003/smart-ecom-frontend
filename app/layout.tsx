@@ -5,6 +5,7 @@ import { ToastProvider } from "../components/ui/toaster";
 import type { ReactNode } from "react";
 import ClientShell from "./shell-client";
 import CartBootstrap from "../components/layout/CartBootstrap";
+import AuthProvider from "@/components/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,21 +22,18 @@ export const metadata: Metadata = {
   description: "Modern ecommerce storefront built with Next.js and Tailwind CSS",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: ReactNode;
-}>) {
-  return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-zinc-50 text-zinc-900 antialiased dark:bg-black dark:text-zinc-50`}
-      >
+// app/layout.tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en" suppressHydrationWarning>
+        <body>
         <ToastProvider>
-          <CartBootstrap />
-          <ClientShell>{children}</ClientShell>
+            <AuthProvider>
+                <CartBootstrap />  {/* now runs after auth is hydrated */}
+                <ClientShell>{children}</ClientShell>
+            </AuthProvider>
         </ToastProvider>
-      </body>
-    </html>
-  );
+        </body>
+</html>
+);
 }

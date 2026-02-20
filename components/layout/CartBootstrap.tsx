@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useCartStore } from "../../lib/cart-store";
 import { getCartForUser } from "../../lib/cart-api";
 import { getCurrentUserId } from "../../lib/user";
+import {useRequireAuth} from "@/lib/use-require-auth";
 
 /**
  * CartBootstrap keeps the in-memory cart store in sync with the backend
@@ -11,9 +12,9 @@ import { getCurrentUserId } from "../../lib/user";
  */
 export default function CartBootstrap() {
   const hydrateFromServer = useCartStore((state) => state.hydrateFromServer);
-
+    const { isHydrated, isAuthenticated, user } = useRequireAuth();
   useEffect(() => {
-    const userId = getCurrentUserId();
+    const userId = user?.data.id;
     if (!userId) return;
 
     getCartForUser(userId)

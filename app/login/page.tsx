@@ -16,6 +16,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+    const handleGoogleSignIn = () => {
+        // redirect to backend OAuth endpoint
+        window.location.href = "http://localhost:8080/login/oauth2/code/google";
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +104,26 @@ export default function LoginPage() {
             Create account
           </Link>
         </div>
+          <div className="mt-4">
+              <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+                  <span className="text-xs text-zinc-500">OR</span>
+                  <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+              </div>
+
+              <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  className="mt-4 flex w-full items-center justify-center gap-3 rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                  <img
+                      src="https://www.svgrepo.com/show/475656/google-color.svg"
+                      alt="Google"
+                      className="h-5 w-5"
+                  />
+                  Continue with Google
+              </button>
+          </div>
       </div>
     </div>
   );

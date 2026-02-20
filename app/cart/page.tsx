@@ -13,6 +13,7 @@ import { useCartStore } from "../../lib/cart-store";
 import { useRouter } from "next/navigation";
 import { getCurrentUserId } from "../../lib/user";
 import { useToast } from "../../components/ui/toaster";
+import {useRequireAuth} from "@/lib/use-require-auth";
 
 export default function CartPage() {
   const router = useRouter();
@@ -23,14 +24,12 @@ export default function CartPage() {
   const cartId = useCartStore((state) => state.cartId);
   const { addToast } = useToast();
   const [loading, setLoading] = useState(true);
-
+    const { isHydrated, isAuthenticated, user } = useRequireAuth({
+        redirectTo: `/login?redirect=${encodeURIComponent(`/cart`)}`,
+    });
   useEffect(() => {
-    const userId = getCurrentUserId();
-    if (!userId) {
-      router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
-      return;
-    }
-    getCartForUser(userId)
+
+    getCartForUser(user?.data?.id)
       .then((res) => hydrateFromServer(res.data))
       .catch((error) => console.error("Failed to load cart", error))
       .finally(() => setLoading(false));
@@ -38,11 +37,7 @@ export default function CartPage() {
 
   const handleRemove = async (cartItemId: number) => {
     try {
-      const userId = getCurrentUserId();
-      if (!userId) {
-        router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
-        return;
-      }
+      const userId = user?.data.id;
       removeItemLocally(cartItemId);
       await removeItemFromCart({ userId, cartItemId });
       addToast("Item removed from cart", "success");
@@ -65,11 +60,7 @@ export default function CartPage() {
     }
 
     try {
-      const userId = getCurrentUserId();
-      if (!userId) {
-        router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
-        return;
-      }
+      const userId =user?.data.id;
       const response = await addItemToCart({
         userId,
         productId,
@@ -86,11 +77,7 @@ export default function CartPage() {
 
   const handleClearCart = async () => {
     try {
-      const userId = getCurrentUserId();
-      if (!userId) {
-        router.push(`/login?redirect=${encodeURIComponent("/cart")}`);
-        return;
-      }
+      const userId = user?.data.id
 
       await clearCartForUser(userId);
 
@@ -104,11 +91,7 @@ export default function CartPage() {
 
   const handleProceedToCheckout = async () => {
     try {
-      const userId = getCurrentUserId();
-      if (!userId) {
-        router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
-        return;
-      }
+      const userId = user?.data.id
 
       router.push("/checkout");
     } catch (error) {

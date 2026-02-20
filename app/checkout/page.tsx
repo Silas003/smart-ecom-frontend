@@ -8,6 +8,7 @@ import { getCurrentUserId } from "../../lib/user";
 import { createOrder } from "../../lib/orders";
 import { getCartForUser, updateCartStatus, clearCartForUser } from "../../lib/cart-api";
 import { useToast } from "../../components/ui/toaster";
+import {useRequireAuth} from "@/lib/use-require-auth";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -18,13 +19,11 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const { addToast } = useToast();
-
+    const { isHydrated, isAuthenticated, user } = useRequireAuth({
+        redirectTo: `/login?redirect=${encodeURIComponent(`/checkout`)}`,
+    });
   useEffect(() => {
-    const userId = getCurrentUserId();
-    if (!userId) {
-      router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
-      return;
-    }
+    const userId = user?.data.id
 
     // Ensure cartId is hydrated if not already present
     if (cartId === undefined) {
@@ -42,11 +41,7 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     try {
       setSubmitting(true);
-      const userId = getCurrentUserId();
-      if (!userId) {
-        router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
-        return;
-      }
+      const userId =user?.data.id
       const orderItems = items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,

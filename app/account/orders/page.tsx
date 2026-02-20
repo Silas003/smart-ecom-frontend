@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentUserId } from "../../../lib/user";
 import { getUserOrders, type Order } from "../../../lib/orders";
 import { useToast } from "../../../components/ui/toaster";
+import {useRequireAuth} from "@/lib/use-require-auth";
 
 export default function AccountOrdersPage() {
   const router = useRouter();
@@ -13,13 +14,15 @@ export default function AccountOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+    const { isHydrated, isAuthenticated, user } = useRequireAuth(
+        {
+            redirectTo: `/login?redirect=${encodeURIComponent("/account/orders")}`,
+        }
+    );
 
   useEffect(() => {
-    const userId = getCurrentUserId();
-    if (!userId) {
-      router.push(`/login?redirect=${encodeURIComponent("/account/orders")}`);
-      return;
-    }
+
+    const userId = user?.data.id
     getUserOrders(userId)
       .then((res) => setOrders(res.data))
       .catch((err) => {
